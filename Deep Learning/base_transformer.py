@@ -207,4 +207,34 @@ class TransformerEncoder(nn.Module):
         for layer in self.layers:
             out = layer(out, out, out)
         
+        return out
+
+class DecoderBlock(nn.Module):
+    def __init__(self, embed_dim, expansion_factor = 4, n_heads = 8):
+        super(DecoderBlock, self).__init__()
+        '''
+        Arguments:
+                 embed_dim:
+                 expansion_factor:
+                 n_heads:  
+        '''
+        self.attention = MultiheadAttention(embed_dim, n_heads = 8)
+        self.norm = nn.LayerNorm(embed_dim)
+        self.dropout = nn.Dropout(0.2)
+        self.transformer_block = TransfomerBlock(embed_dim, expansion_factor, n_heads)
+
+    def forward(self, key, query, x, mask):
+        '''
+        Arguments:
+                 key:
+                 query:
+                 value:
+                 mask:
+        Returns:
+                 out:  
+        '''
+        attention = self.attention(x, x, x, mask=mask)
+        value = self.dropout(self.norm(attention + x))
+        out = self.transformer_block(key, query, value)
+
         return out 
