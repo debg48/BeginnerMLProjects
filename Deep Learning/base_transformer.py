@@ -133,3 +133,47 @@ class MultiheadAttention(nn.Module):
             output = self.out(concat)
 
             return output 
+
+class TransfomerBlock(nn.Module):
+    def __init__(self, embed_dim, expansion_factor = 4, n_heads = 8):
+        super(TransfomerBlock, self).__init()
+        '''
+        Arguments:
+                 embed_dim:
+                 expansion_factor:
+                 n_heads:
+        '''
+        self.attention = MultiheadAttention(embed_dim, n_heads)
+
+        self.norm1 = nn.LayerNorm(embed_dim)
+        self.norm1 = nn.LayerNorm(embed_dim)
+
+        self.feed_forward = nn.sequential(nn.Linear(embed_dim, expansion_factor*embed_dim),
+                                          nn.ReLU(),
+                                          nn.Linear(expansion_factor*embed_dim)
+                                          )
+        self.dropout1 = nn.Dropout(0.2)
+        self.dropout2 = nn.Dropout(0.2)
+
+    def forward(self, key, query, value):
+        '''
+        Arguments:
+                 key:
+                 query:
+                 value:
+                 norm2_out:
+        '''
+        attention_out = self.attention(key, query, value)
+
+        attention_residual_out = attention_out + value 
+
+        norm1_out = self.dropout1(self.norm1(attention_residual_out))
+
+        feed_fwd_out = self.feed_forward(norm1_out)
+
+        feed_fwd_residual_out = feed_fwd_out + norm1_out 
+
+        norm2_out = self.dropout2(self.norm2(feed_fwd_residual_out))
+
+        return norm2_out 
+
